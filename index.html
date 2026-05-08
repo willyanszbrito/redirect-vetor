@@ -1,10 +1,451 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR" class="scroll-smooth">
 <head>
-    <meta http-equiv="refresh" content="0; url=https://app.souvetor.com/">
-    <title>Redirecionando...</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Vetorial | Redirecionamento</title>
+
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.png') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        // Supressão do aviso do Tailwind CDN
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) return;
+            originalWarn.apply(console, args);
+        };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    // Sincronizado com a tipografia do sistema interno
+                    fontFamily: { 
+                        sans: ['Nunito', 'sans-serif'],
+                        heading: ['Archivo', 'sans-serif']
+                    },
+                    colors: { 
+                        primary: '#003366',    // Azul Vetor
+                        secondary: '#002244',  // Azul Escuro
+                        accent: '#f9b000',     // Amarelo Vetor
+                        lightbg: '#f4f7fa'     // Fundo Clean
+                    },
+                    animation: { 
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                        'slide-in-left': 'slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'float-slow': 'float 15s ease-in-out infinite',
+                        'float-slower': 'float 20s ease-in-out infinite reverse',
+                        'float-medium': 'float 12s ease-in-out infinite',
+                        'pulse-soft': 'softPulse 1.5s infinite ease-in-out'
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideInLeft: {
+                            '0%': { opacity: '0', transform: 'translateX(-50px)' },
+                            '100%': { opacity: '1', transform: 'translateX(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                            '50%': { transform: 'translateY(-20px) rotate(3deg)' },
+                        },
+                        softPulse: {
+                            '0%, 100%': { transform: 'scale(1)', opacity: '0.8' },
+                            '50%': { transform: 'scale(1.15)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { transition: opacity 0.8s ease; background-color: theme('colors.lightbg'); }
+        body.fade-out { opacity: 0; }
+        
+        .bg-login-image {
+            background-image: url('https://images.unsplash.com/photo-1523050335456-1da94390900f?auto=format&fit=crop&q=80&w=1470');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        @keyframes textGlow {
+            0% { opacity: 0; text-shadow: 0 0 0 rgba(255,255,255,0); transform: scale(0.95); }
+            40% { opacity: 1; text-shadow: 0 0 25px rgba(249,176,0,0.6), 0 0 40px rgba(255,255,255,0.4); transform: scale(1.05); color: #ffffff; }
+            100% { opacity: 1; text-shadow: 0 0 10px rgba(255,255,255,0.2); transform: scale(1); color: #f8fafc; }
+        }
+        
+        .animate-text-glow {
+            animation: textGlow 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            display: inline-block;
+        }
+
+        /* Glassmorphism Refinado */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 51, 102, 0.15);
+        }
+    </style>
 </head>
-<body>
-    <p>Redirecionando para o novo sistema... <a href="https://app.souvetor.com/">Clique aqui se não for redirecionado automaticamente</a>.</p>
+<body class="flex min-h-screen overflow-x-hidden text-gray-700">
+
+    <div id="redirect-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[150] flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500">
+        <div class="glass-card p-10 rounded-3xl flex flex-col items-center text-center max-w-sm mx-4 transform scale-95 transition-transform duration-500" id="redirect-modal">
+            <div class="mb-6 h-16 flex items-center justify-center">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Carregando..." class="h-12 w-auto animate-pulse-soft">
+            </div>
+            <h3 class="font-heading text-2xl font-bold text-primary mb-2">Preparando ambiente...</h3>
+            <p class="text-gray-500 font-medium text-sm">Aguarde um instante, estamos redirecionando você de forma segura.</p>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed top-8 left-6 z-[200] flex flex-col gap-3"></div>
+
+    <div class="fixed inset-y-0 right-0 w-full lg:w-1/2 overflow-hidden pointer-events-none z-0 opacity-40">
+        <i class="fas fa-graduation-cap text-primary/10 text-8xl absolute top-[15%] left-[10%] animate-float-slow"></i>
+        <i class="fas fa-chart-line text-accent/10 text-9xl absolute bottom-[15%] right-[10%] animate-float-slower"></i>
+        <i class="fas fa-laptop-code text-primary/10 text-7xl absolute top-[40%] right-[15%] animate-float-medium"></i>
+    </div>
+
+    <aside class="hidden lg:flex lg:w-1/2 bg-login-image relative items-center justify-center overflow-hidden group">
+        <div class="absolute inset-0 bg-primary/80 backdrop-blur-[3px] group-hover:backdrop-blur-sm transition-all duration-1000"></div>
+        
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-white/10 blur-3xl animate-float-slow"></div>
+            <div class="absolute bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-accent/20 blur-3xl animate-float-slower"></div>
+        </div>
+
+        <div class="relative z-10 text-white text-center p-12 flex flex-col items-center -mt-20">
+            <div class="mb-8 transform hover:scale-110 transition-transform duration-700 ease-out">
+                <div class="w-24 h-24 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl animate-float-medium">
+                    <i class="fas fa-graduation-cap text-5xl text-accent drop-shadow-md"></i>
+                </div>
+            </div>
+            <h1 class="font-heading text-5xl font-bold mb-6 leading-tight drop-shadow-xl animate-fade-in-up" style="animation-fill-mode: both; animation-delay: 0.2s;">
+                Bem-vindo(a) ao<br>Sistema Vetorial
+            </h1>
+            <div class="h-1 w-16 bg-accent rounded-full mb-6 animate-fade-in-up" style="animation-fill-mode: both; animation-delay: 0.4s;"></div>
+            <p id="animated-subtitle" class="text-xl opacity-90 font-medium italic tracking-wide h-8" style="animation-fill-mode: both; animation-delay: 0.6s;">
+                </p>
+        </div>
+    </aside>
+
+    <main class="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 relative z-10">
+
+        <div class="glass-card rounded-[2rem] p-8 sm:p-12 text-center max-w-md w-full animate-fade-in-up">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <section class="mb-6" aria-live="polite">
+                    {% for category, message in messages %}
+                        {% set color = 'bg-red-50 border-red-200 text-red-700' if category == 'error' else 'bg-blue-50 border-blue-200 text-blue-700' %}
+                        <div class="border px-4 py-3 rounded-xl text-sm {{ color }} mb-2 shadow-sm" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    </section>
+                {% endif %}
+            {% endwith %}
+
+            <header class="mb-8">
+                <div class="flex justify-center items-center mb-8">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Vetor" class="h-20 hover:scale-105 transition-transform duration-300 drop-shadow-sm">
+                </div>
+                <h2 class="font-heading text-2xl font-bold text-primary">
+                    Acesse sua conta
+                </h2>
+                <p class="text-gray-500 text-sm mt-2">Escolha seu perfil para entrar no portal</p>
+            </header>
+
+            <nav>
+                <div class="mb-6 text-left bg-lightbg p-4 rounded-2xl border border-gray-100 transition-colors hover:border-gray-200">
+                    <label class="flex items-start gap-3 cursor-pointer group">
+                        <div class="relative flex items-center justify-center mt-0.5">
+                            <input type="checkbox" id="terms-checkbox" class="peer sr-only">
+                            <div class="w-5 h-5 border-2 border-gray-300 bg-white rounded-md peer-checked:bg-primary peer-checked:border-primary transition-all shadow-sm"></div>
+                            <svg class="absolute pointer-events-none w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-all transform scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <span class="text-[0.8rem] text-gray-500 font-medium leading-relaxed select-none">
+                            Li e concordo expressamente com os <a href="{{ url_for('auth.termos') }}" onclick="handleLinkClick(event, this.href)" class="text-primary hover:text-accent font-bold transition-colors">Termos de Uso</a> e a <a href="{{ url_for('auth.privacidade') }}" onclick="handleLinkClick(event, this.href)" class="text-primary hover:text-accent font-bold transition-colors">Política de Privacidade</a>.
+                        </span>
+                    </label>
+                </div>
+
+                <ul class="space-y-3">
+                    <li>
+                        <button onclick="handleLoginClick('{{ url_for('auth.login') }}')" class="flex w-full items-center justify-between bg-primary text-white font-bold py-4 px-6 rounded-2xl hover:bg-secondary transition-all transform hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/30 group border border-transparent">
+                            <span class="flex items-center gap-4"><i class="fas fa-user-tie text-xl text-accent group-hover:rotate-12 transition-transform"></i> Colaborador(a)</span>
+                            <i class="fas fa-arrow-right text-sm opacity-70 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showDevMessage()" class="flex w-full items-center justify-between bg-white text-gray-400 font-semibold py-3.5 px-6 rounded-2xl border border-gray-200 cursor-default group transition-all hover:bg-gray-50">
+                            <span class="flex items-center gap-4"><i class="fas fa-user-graduate text-lg opacity-50"></i> Aluno(a)</span>
+                            <span class="text-[9px] bg-gray-100 text-gray-400 px-2.5 py-1 rounded-md uppercase tracking-widest font-bold">Em breve</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="showDevMessage()" class="flex w-full items-center justify-between bg-white text-gray-400 font-semibold py-3.5 px-6 rounded-2xl border border-gray-200 cursor-default group transition-all hover:bg-gray-50">
+                            <span class="flex items-center gap-4"><i class="fas fa-users text-lg opacity-50"></i> Responsável</span>
+                            <span class="text-[9px] bg-gray-100 text-gray-400 px-2.5 py-1 rounded-md uppercase tracking-widest font-bold">Em breve</span>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+
+            <footer class="mt-10 pt-6 border-t border-gray-100 text-gray-400 text-xs text-center space-y-4">
+
+                {% if show_logout %}
+                <button onclick="handleLinkClick(event, '{{ url_for('auth.logout') }}')"
+                   class="flex items-center justify-center gap-2 w-full bg-lightbg text-primary font-bold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors group">
+                    <i class="fas fa-exchange-alt text-sm group-hover:-rotate-180 transition-transform duration-500"></i>
+                    Acessar com outro e-mail
+                </button>
+                {% endif %}
+
+                <div class="flex justify-center gap-4">
+                    <a href="{{ url_for('auth.termos') }}" onclick="handleLinkClick(event, this.href)" class="hover:text-primary transition-colors font-semibold">Termos de Uso</a>
+                    <span class="text-gray-300">&bull;</span>
+                    <a href="{{ url_for('auth.privacidade') }}" onclick="handleLinkClick(event, this.href)" class="hover:text-primary transition-colors font-semibold">Privacidade</a>
+                </div>
+
+                <div class="leading-relaxed">
+                    <p class="mb-1">&copy; <span id="current-year"></span> Sistema Vetorial. Todos os direitos reservados.</p>
+                    <p>Desenvolvido por <a href="https://lattes.cnpq.br/3962922646069116" target="_blank" rel="noopener noreferrer" class="font-bold text-gray-500 hover:text-accent transition-colors">Willyan Souza Brito</a></p>
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <div id="cookie-banner" class="fixed bottom-6 inset-x-4 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 z-[60] transform translate-y-[150%] opacity-0 transition-all duration-700 ease-out w-full md:w-[850px] max-w-[calc(100vw-2rem)] hidden">
+        <div class="bg-white border border-gray-100 shadow-[0_10px_40px_rgba(0,51,102,0.15)] rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 mx-auto">
+            <div class="text-sm text-gray-600 flex items-start sm:items-center gap-4 w-full">
+                <div class="bg-lightbg p-3.5 rounded-2xl hidden sm:flex shrink-0 items-center justify-center">
+                    <i class="fas fa-cookie-bite text-primary text-2xl drop-shadow-sm"></i>
+                </div>
+                <div class="leading-relaxed">
+                    <strong class="text-primary block mb-1.5 text-base font-heading">Valorizamos sua privacidade</strong>
+                    Utilizamos cookies para aprimorar sua navegação, analisar métricas e garantir a segurança do seu acesso no Sistema Vetorial. Ao prosseguir, você concorda com nossas políticas.
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0 mt-4 md:mt-0">
+                <button onclick="openCookieManager()" class="px-5 py-2.5 text-gray-500 hover:text-primary hover:bg-lightbg text-sm font-bold rounded-xl transition-all w-full sm:w-auto text-center">Gerenciar</button>
+                <button onclick="acceptCookies('necessarios')" class="px-5 py-2.5 border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary hover:bg-lightbg text-sm font-bold rounded-xl transition-all w-full sm:w-auto text-center">Só os Necessários</button>
+                <button onclick="acceptCookies('todos')" class="px-6 py-2.5 bg-primary hover:bg-secondary text-white text-sm font-bold rounded-xl shadow-lg hover:shadow-primary/30 transform hover:-translate-y-0.5 transition-all w-full sm:w-auto text-center">Aceitar Todos</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cookie-manager-modal" class="fixed inset-0 z-[70] hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeCookieManager()"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col pointer-events-auto max-h-[90vh] transform scale-95 transition-transform duration-300" id="cookie-modal-content">
+                <div class="flex justify-between items-center p-6 border-b border-gray-100 bg-white">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-lightbg p-2.5 rounded-xl"><i class="fas fa-sliders-h text-primary text-xl"></i></div>
+                        <h2 class="text-xl font-bold font-heading text-primary">Preferências de Cookies</h2>
+                    </div>
+                    <button onclick="closeCookieManager()" class="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <div class="flex flex-col md:flex-row flex-1 overflow-hidden bg-white">
+                    <div class="w-full md:w-2/5 border-r border-gray-100 p-4 overflow-y-auto space-y-2 bg-gray-50/30">
+                        <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100 cursor-default flex justify-between items-center group transition-colors">
+                            <span class="font-bold text-sm text-primary">Estritamente Necessários</span>
+                            <div class="text-primary font-bold text-xs bg-blue-100/50 px-2.5 py-1 rounded-lg">Ativo</div>
+                        </div>
+                        <label class="p-4 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-100 cursor-pointer flex justify-between items-center transition-colors group">
+                            <span class="font-bold text-sm text-gray-700 group-hover:text-primary transition-colors">Cookies Analíticos</span>
+                            <div class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="w-full md:w-3/5 p-8 overflow-y-auto text-sm text-gray-600 leading-relaxed">
+                        <div class="max-w-none">
+                            <h3 class="text-base font-bold text-gray-800 mb-4 font-heading">A sua privacidade é nossa prioridade</h3>
+                            <p class="mb-4">Quando você visita qualquer site, ele pode armazenar ou recuperar informações no seu navegador, principalmente na forma de cookies.</p>
+                            <div class="text-xs text-gray-500 bg-lightbg p-4 rounded-xl border border-gray-100 flex gap-3 items-start">
+                                <i class="fas fa-info-circle text-primary text-base mt-0.5"></i>
+                                <p>O bloqueio de alguns tipos de cookies pode impactar sua experiência no site e os serviços que podemos oferecer.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-5 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <button onclick="acceptCookies('rejeitar')" class="px-6 py-2.5 text-gray-500 hover:text-gray-800 text-sm font-bold rounded-xl transition-colors w-full sm:w-auto text-left sm:text-center order-3 sm:order-1">Rejeitar Opcionais</button>
+                    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
+                        <button onclick="acceptCookies('marcados')" class="px-6 py-2.5 border-2 border-gray-200 text-gray-600 hover:border-primary hover:text-primary bg-white text-sm font-bold rounded-xl transition-all w-full sm:w-auto text-center shadow-sm">Salvar Minhas Escolhas</button>
+                        <button onclick="acceptCookies('todos')" class="px-8 py-2.5 bg-primary hover:bg-secondary text-white text-sm font-bold rounded-xl shadow-lg hover:shadow-primary/30 transform hover:-translate-y-0.5 transition-all w-full sm:w-auto text-center">Aceitar Todos</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        function showErrorToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-white text-red-700 border-l-4 border-red-500 px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 animate-slide-in-left';
+            toast.innerHTML = `<i class="fas fa-exclamation-circle text-red-500 text-lg"></i> <span class="font-medium text-sm">${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        function showDevMessage() {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-secondary text-white px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 animate-slide-in-left border border-primary';
+            toast.innerHTML = `<i class="fas fa-tools text-accent text-lg"></i> <span class="font-medium text-sm">Em desenvolvimento. Em breve teremos novidades por aqui!</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 3500);
+        }
+
+        function handleLinkClick(event, url) {
+            event.preventDefault();
+            const overlay = document.getElementById('redirect-overlay');
+            const modal = document.getElementById('redirect-modal');
+            
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            overlay.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                modal.classList.remove('scale-95');
+                modal.classList.add('scale-100');
+            }, 50);
+            
+            setTimeout(() => { window.location.href = url; }, 1200);
+        }
+
+        function handleLoginClick(url) {
+            const checkbox = document.getElementById('terms-checkbox');
+            if (!checkbox.checked) {
+                showErrorToast('Você precisa aceitar os Termos de Uso e Política de Privacidade para continuar.');
+                
+                const labelContainer = checkbox.closest('label').parentElement;
+                labelContainer.classList.add('animate-pulse', 'bg-red-50', 'border-red-200');
+                setTimeout(() => {
+                    labelContainer.classList.remove('animate-pulse', 'bg-red-50', 'border-red-200');
+                }, 1000);
+                
+                return;
+            }
+            handleLinkClick({preventDefault: () => {}}, url);
+        }
+
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward")) {
+                const overlay = document.getElementById('redirect-overlay');
+                const modal = document.getElementById('redirect-modal');
+                if (overlay) {
+                    overlay.classList.add('opacity-0', 'pointer-events-none');
+                    overlay.classList.remove('opacity-100');
+                }
+                if (modal) {
+                    modal.classList.add('scale-95');
+                    modal.classList.remove('scale-100');
+                }
+            }
+        });
+
+        // LGPD functions
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('vetorial_cookie_consent')) {
+                setTimeout(() => {
+                    const banner = document.getElementById('cookie-banner');
+                    if(banner) {
+                        banner.classList.remove('hidden');
+                        setTimeout(() => {
+                            banner.classList.remove('translate-y-[150%]', 'opacity-0');
+                            banner.classList.add('translate-y-0', 'opacity-100');
+                        }, 50);
+                    }
+                }, 1000);
+            }
+        });
+
+        function acceptCookies(type) {
+            localStorage.setItem('vetorial_cookie_consent', type);
+            const banner = document.getElementById('cookie-banner');
+            if(banner) {
+                banner.classList.remove('translate-y-0', 'opacity-100');
+                banner.classList.add('translate-y-[150%]', 'opacity-0');
+                setTimeout(() => banner.classList.add('hidden'), 700);
+            }
+            closeCookieManager();
+        }
+
+        function openCookieManager() {
+            const modal = document.getElementById('cookie-manager-modal');
+            const content = document.getElementById('cookie-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                if(content) { content.classList.remove('scale-95'); content.classList.add('scale-100'); }
+            }, 10);
+        }
+
+        function closeCookieManager() {
+            const modal = document.getElementById('cookie-manager-modal');
+            const content = document.getElementById('cookie-modal-content');
+            if(modal) modal.classList.add('opacity-0');
+            if(content) { content.classList.remove('scale-100'); content.classList.add('scale-95'); }
+            setTimeout(() => { if(modal) modal.classList.add('hidden'); }, 300);
+        }
+
+        // Animação de brilho aleatório nas letras
+        document.addEventListener('DOMContentLoaded', () => {
+            const subtitleContainer = document.getElementById('animated-subtitle');
+            if (subtitleContainer) {
+                const text = "Aluno Vetor é outra história.";
+                subtitleContainer.innerHTML = '';
+                
+                const spans = text.split('').map(char => {
+                    const span = document.createElement('span');
+                    span.textContent = char === ' ' ? '\u00A0' : char;
+                    span.className = 'opacity-0';
+                    subtitleContainer.appendChild(span);
+                    return span;
+                });
+
+                const indices = spans.map((_, i) => i).sort(() => Math.random() - 0.5);
+
+                setTimeout(() => {
+                    indices.forEach((index, i) => {
+                        setTimeout(() => {
+                            spans[index].className = 'animate-text-glow';
+                        }, i * 80);
+                    });
+                }, 800);
+            }
+        });
+    </script>
 </body>
 </html>
