@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Vetorial | Redirecionando...</title>
     
-    <meta http-equiv="refresh" content="0; url=SUA_URL_DE_DESTINO_AQUI">
+    <meta http-equiv="refresh" content="0; url=https://app.souvetor.com/">
     
     <style>
         body {
@@ -29,7 +29,7 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            border-left-color: #007bff;
+            border-left-color: #003366; /* Azul Vetor */
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
         }
@@ -42,7 +42,7 @@
             margin-bottom: 8px;
         }
         a {
-            color: #007bff;
+            color: #003366;
             text-decoration: none;
             font-weight: 500;
         }
@@ -60,13 +60,8 @@
     </div>
 
     <script>
-        const urlDestino = "SUA_URL_DE_DESTINO_AQUI";
-        
-        // Se quiser que parâmetros da URL original (ex: ?origem=whatsapp) sejam mantidos:
-        // const urlDestinoComParams = urlDestino + window.location.search;
-        // window.location.href = urlDestinoComParams;
-        
-        window.location.href = urlDestino;
+        // Vai mandar o usuário direto para o app.souvetor.com
+        window.location.replace("https://app.souvetor.com/");
     </script>
 </body>
 </html>
